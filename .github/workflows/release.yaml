@@ -15,7 +15,7 @@ jobs:
       contents: read
       pull-requests: write
       actions: read
-    uses: guidion-digital/terrappy/.github/workflows/tfc-test-application-modules-apply-enterprise.yaml@v1
+    uses: guidion-digital/terrappy/.github/workflows/tfc-test-application-modules-apply-enterprise.yaml@v2
     with:
       # environment_name: ${{ github.ref_name }}
       tfc_workspace: constr-acc-api-app-x
