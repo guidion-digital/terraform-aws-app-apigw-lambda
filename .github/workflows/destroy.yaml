@@ -12,7 +12,7 @@ jobs:
       issues: write
       contents: read
       pull-requests: write
-    uses: guidion-digital/terrappy/.github/workflows/tfc-destroy-enterprise.yaml@v1
+    uses: guidion-digital/terrappy/.github/workflows/tfc-destroy-enterprise.yaml@v2
     with:
       environment_name: "dev"
       working_directory: ./examples/test_app
@@ -24,7 +24,7 @@ jobs:
       issues: write
       contents: read
       pull-requests: write
-    uses: guidion-digital/terrappy/.github/workflows/tfc-destroy-enterprise.yaml@v1
+    uses: guidion-digital/terrappy/.github/workflows/tfc-destroy-enterprise.yaml@v2
     with:
       environment_name: "acc"
       working_directory: ./examples/test_app

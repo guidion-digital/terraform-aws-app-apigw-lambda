@@ -23,7 +23,7 @@ jobs:
       issues: write
       contents: read
       pull-requests: write
-    uses: guidion-digital/terrappy/.github/workflows/tfc-test-application-modules-plan-and-test-enterprise.yaml@v1
+    uses: guidion-digital/terrappy/.github/workflows/tfc-test-application-modules-plan-and-test-enterprise.yaml@v2
     with:
       tfc_workspace: constr-acc-api-app-x
 
