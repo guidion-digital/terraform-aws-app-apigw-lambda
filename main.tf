@@ -490,7 +490,7 @@ module "firewall" {
   depends_on = [aws_api_gateway_stage.this]
 
   source  = "guidion-digital/helper-firewall/aws"
-  version = "0.0.1"
+  version = "0.1.0"
 
   scope                  = "REGIONAL"
   application_name       = "${var.application_name}-regional"
