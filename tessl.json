@@ -1,0 +1,9 @@
+{
+  "name": "terraform-aws-app-api-lambda",
+  "mode": "vendored",
+  "dependencies": {
+    "guidion-digital/terraform-modules": {
+      "version": "0.0.8"
+    }
+  }
+}

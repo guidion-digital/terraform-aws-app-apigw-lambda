@@ -1,0 +1,34 @@
+name: Test
+
+on:
+  pull_request:
+    types:
+      - opened
+      - edited
+      - synchronize
+    branches:
+      - acc
+
+jobs:
+  test-workflow:
+    uses: guidion-digital/release-workflows/.github/workflows/github-test-workflow.yaml@v2
+    permissions:
+      pull-requests: write
+      contents: read
+
+  test:
+    needs: test-workflow
+    secrets: inherit
+    permissions:
+      issues: write
+      contents: read
+      pull-requests: write
+    uses: guidion-digital/terrappy/.github/workflows/tfc-test-application-modules-plan-and-test-enterprise.yaml@v1
+    with:
+      tfc_workspace: constr-acc-api-app-x
+
+  release-dry-run:
+    needs: test
+    uses: guidion-digital/release-workflows/.github/workflows/github-release-tag-dry-run.yaml@v2
+    with:
+      branch: ${{ github.ref_name }}

@@ -1,0 +1,19 @@
+{
+    "profile": "Passive",
+    "passive_exclude": [
+        "DESCRIPTION",
+        "RESPONSE SUCCESSES (2xx)",
+        "DEFAULT RESPONSE",
+        "CONTAINS RESPONSE",
+        "403",
+        "401"
+    ],
+    "active_exclude": [
+        "DESCRIPTION",
+        "RESPONSE SUCCESSES (2xx)",
+        "DEFAULT RESPONSE",
+        "CONTAINS RESPONSE",
+        "403",
+        "401"
+    ]
+}
