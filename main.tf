@@ -532,3 +532,4 @@ resource "aws_cloudwatch_log_subscription_filter" "lambda_promtail_logfilter" {
   destination_arn = var.grafana_promtail_lambda_arn
   filter_pattern  = ""
 }
+
