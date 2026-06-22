@@ -50,6 +50,8 @@ examples/personal/*
 .mcp.json
 node_modules
 dist
+!examples/test_app/dist/
+!examples/test_app/dist/**
 coverage/
 .npmrc
 .DS_Store
