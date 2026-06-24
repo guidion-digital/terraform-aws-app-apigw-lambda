@@ -12,10 +12,12 @@ variable "validate_openapi_spec" {
 
 variable "stage" {
   description = "Used for naming certain resources. Not to be confused with var.api_stage"
+  type        = string
 }
 
 variable "api_stage" {
   description = "The name to use for the API stage to deploy to. We only use one"
+  type        = string
   default     = "live"
 }
 
