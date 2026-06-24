@@ -656,6 +656,7 @@ variable "dynamodb_tables" {
 
 variable "grafana_promtail_lambda_arn" {
   description = "ARN of Lambda that will forward on logs to Grafana"
+  type        = string
   default     = null
 }
 
