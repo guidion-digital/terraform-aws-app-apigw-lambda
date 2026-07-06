@@ -252,8 +252,8 @@ module "api_keys" {
 module "authorizer" {
   for_each = var.authorizers.create_custom
 
-  source  = "app.terraform.io/guidion/helper-api-authorizer/aws"
-  version = "0.0.12"
+  source  = "guidion-digital/helper-api-authorizer/aws"
+  version = "0.0.1"
 
   name        = each.key
   secret_name = each.value.secret_name
@@ -532,4 +532,3 @@ resource "aws_cloudwatch_log_subscription_filter" "lambda_promtail_logfilter" {
   destination_arn = var.grafana_promtail_lambda_arn
   filter_pattern  = ""
 }
-
