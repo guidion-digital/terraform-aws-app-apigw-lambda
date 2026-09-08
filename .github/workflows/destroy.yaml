@@ -3,7 +3,7 @@ name: Destroy
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 20 * * FRI'
+    - cron: "0 20 * * FRI"
 
 jobs:
   destroy-terraform-dev:
@@ -16,7 +16,7 @@ jobs:
     with:
       environment_name: "dev"
       working_directory: ./examples/test_app
-      destroy_targets: '["module.api-app-x.module.acm_validations[0].aws_acm_certificate.this[\"api-app-x.constr.acc.guidion.io\"]"]'
+      destroy_targets: '["module.api-app-x.module.acm_validations[0].aws_acm_certificate.this[\"api-app-x.constr.dev.guidion.io\"]"]'
 
   destroy-terraform-acc:
     secrets: inherit

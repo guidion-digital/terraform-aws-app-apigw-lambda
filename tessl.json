@@ -1,5 +1,5 @@
 {
-  "name": "terraform-aws-app-api-lambda",
+  "name": "terraform-aws-app-apigw-lambda",
   "mode": "vendored",
   "dependencies": {
     "guidion-digital/terraform-modules": {

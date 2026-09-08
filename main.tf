@@ -252,8 +252,8 @@ module "api_keys" {
 module "authorizer" {
   for_each = var.authorizers.create_custom
 
-  source  = "app.terraform.io/guidion/helper-api-authorizer/aws"
-  version = "0.0.12"
+  source  = "guidion-digital/helper-api-authorizer/aws"
+  version = "0.0.1"
 
   name        = each.key
   secret_name = each.value.secret_name
@@ -322,18 +322,18 @@ locals {
     x-amazon-apigateway-request-validators = var.request_validators
   })
 
-  # TODO: Ensure that `body` is validated somehow. Its seems that this resource
-  #       accepts and ignores invalid _parts_ of the body, meaning we could end
-  #       up in a situation other than what we think we've specified. For example,
-  #       if the 'security' key for an endpoint is malformed, there would be no
-  #       security on the endpoint, even though we think we're said there should be
+  # This resource accepts and ignores invalid _parts_ of the body, so we can end
+  # up with something other than what we think we specified, with no sign of it
+  # in the plan.
   #
-  #       Possible solutions:
-  #       1. Validate the parts of the schema we use with pre and post conditions:
+  # TODO: The rest of the document is still unvalidated. Two things left to do:
+  #       1. Extend the precondition to the other parts of the schema we rely on,
+  #          e.g. that every operation carries an x-amazon-apigateway-integration:
   #          - https://developer.hashicorp.com/terraform/tutorials/configuration-language/custom-conditions#add-preconditions
-  #          - https://developer.hashicorp.com/terraform/tutorials/configuration-language/custom-conditions#add-a-postcondition
-  #       2. Use something like CherryBomb at deploy-time on an outputted file:
-  #          - https://github.com/blst-security/cherrybomb
+  #       2. Check what AWS actually deployed rather than what we sent, by reading
+  #          the stage back with data.aws_api_gateway_export and asserting on it in
+  #          a postcondition. This is the only way to catch a silent drop we have
+  #          not thought to predict
   openapi_spec = var.openapi_spec != null ? var.openapi_spec : local.openapi_spec_generated
 
   full_openapi_spec_mocked = jsonencode({
@@ -376,6 +376,34 @@ module "paths_spec" {
   maps = [for this_one in module.api_lambdas : this_one.paths_spec]
 }
 
+locals {
+  # Every security scheme referenced by an endpoint, flattened for validation.
+  # Only var.lambdas is consulted, because it is plain input and so always known
+  # at plan time — local.openapi_spec is not, since module.paths_spec comes from
+  # a data source fed by Lambda ARNs that do not exist yet on a first apply
+  referenced_security_schemes = flatten([
+    for this_lambda_key, this_lambda_value in var.lambdas : [
+      for this_endpoint, these_methods in this_lambda_value.endpoints : [
+        for this_method, this_method_config in these_methods : [
+          for this_scheme in this_method_config.security : {
+            reference = "${upper(this_method)} ${this_endpoint} (var.lambdas[\"${this_lambda_key}\"])"
+            scheme    = this_scheme
+          }
+        ]
+      ]
+    ]
+  ])
+
+  # A security requirement naming a scheme that is not in components.securitySchemes
+  # cannot be resolved, so API Gateway drops it — leaving the endpoint with no
+  # security at all while the plan still looks clean. See the TODO on local.openapi_spec
+  undeclared_security_schemes = distinct([
+    for this_reference in local.referenced_security_schemes :
+    "${this_reference.reference} references \"${this_reference.scheme}\""
+    if !contains(keys(local.securitySchemes), this_reference.scheme)
+  ])
+}
+
 resource "aws_api_gateway_rest_api" "this" {
   name              = var.application_name
   put_rest_api_mode = local.put_rest_api_mode
@@ -386,6 +414,24 @@ resource "aws_api_gateway_rest_api" "this" {
   }
 
   body = local.openapi_spec
+
+  lifecycle {
+    precondition {
+      # Skipped for a caller-supplied document: var.openapi_spec brings its own
+      # components.securitySchemes, which var.lambdas says nothing about
+      condition = var.openapi_spec != null || length(local.undeclared_security_schemes) == 0
+
+      error_message = join("\n", concat(
+        ["These endpoints reference a security scheme that is not declared. API Gateway would drop the requirement silently and serve them with no security:"],
+        [for this_one in local.undeclared_security_schemes : "  - ${this_one}"],
+        [
+          "",
+          "Declared schemes: ${length(local.securitySchemes) == 0 ? "(none)" : join(", ", keys(local.securitySchemes))}",
+          "Add the authoriser to var.authorizers, or add a client to var.clients to declare \"api_key\"."
+        ]
+      ))
+    }
+  }
 }
 
 # Remap Lambda endpoints and send them to module.method_settings to have their
@@ -532,4 +578,3 @@ resource "aws_cloudwatch_log_subscription_filter" "lambda_promtail_logfilter" {
   destination_arn = var.grafana_promtail_lambda_arn
   filter_pattern  = ""
 }
-
