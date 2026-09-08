@@ -1,0 +1,19 @@
+name: Regenerate CONTEXT.md
+
+on:
+  schedule:
+    - cron: "0 5 * * 1" # 07:00 Amsterdam time (CEST/UTC+2) every Monday
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  regenerate:
+    uses: guidion-digital/context-layer/.github/workflows/regenerate-context.yaml@0.0.20
+    with:
+      tree_dirs: ".,modules,examples,.github/workflows"
+      repo_owner: "Cinfra"
+    secrets:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

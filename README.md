@@ -178,10 +178,12 @@ Then a single secret will be created with the name `/applications/${application_
 
 Authorisers for the API Gateway can be defined in one of two ways:
 
-1. Using this module: The Lambda can be defined along with the other Lambdas in the `var.lambdas{}` map with the `"allow_apigw_invocation" = true,`. It can then be added as a custom authoriser [in the `authorizers` block](https://github.com/guidion-digital/terraform-aws-app-api-lambda/blob/master/examples/simple/main.tf#L108).
+1. Using this module: The Lambda can be defined along with the other Lambdas in the `var.lambdas{}` map with the `"allow_apigw_invocation" = true,`. It can then be added as a custom authoriser [in the `authorizers` block](https://github.com/guidion-digital/terraform-aws-app-apigw-lambda/blob/master/examples/simple/main.tf).
 2. Create an authorisation Lambda outside this module, and supply the `authorizer_uri` and `authorizer_credentials` fields for the custom authoriser block.
 
 To assign an authoriser to a Lambda simply add/set the name of the authoriser in the `security` list, e.g. `security = ["custom_authorizer_name"]`.
+
+The name you put in `security` must match an authoriser declared in `var.authorizers`, or `"api_key"` (which only exists when `var.clients` is non-empty). A name that matches neither is not an error to API Gateway: it accepts the OpenAPI document, quietly drops the requirement it cannot resolve, and serves the endpoint with **no security at all** — and the plan gives no hint of it. This module therefore fails the plan on such a reference, listing the offending endpoints and the schemes that are actually declared. An empty list (`security = []`) is untouched by this check, since that deliberately means "no security"; the check is only about names that were meant to resolve and did not. The check is skipped when you supply your own document via `var.openapi_spec`, which brings its own `components.securitySchemes`.
 
 ### Deleting the ACM Certificate
 

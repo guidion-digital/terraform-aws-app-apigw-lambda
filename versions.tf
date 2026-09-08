@@ -1,4 +1,7 @@
 terraform {
+  # Preconditions (see aws_api_gateway_rest_api.this) need >= 1.2
+  required_version = ">= 1.2.0"
+
   required_providers {
     aws = {
       source  = "hashicorp/aws"

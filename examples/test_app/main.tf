@@ -392,7 +392,7 @@ module "api-app-x" {
     }
 
     # Simple GET Lambda, protected by our dummy authoriser
-    "get-without-vpc" = {
+    "get-without-vpc-auth" = {
       handler      = "debug.handler",
       "source_dir" = "${path.module}/dist/",
       "role_arn"   = var.role_arn,
