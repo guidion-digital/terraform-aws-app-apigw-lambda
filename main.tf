@@ -493,6 +493,8 @@ resource "aws_api_gateway_stage" "this" {
 }
 
 data "aws_ec2_transit_gateway" "this" {
+  count = var.vpc_config != null ? 1 : 0
+
   filter {
     name   = "state"
     values = ["available"]
@@ -508,7 +510,7 @@ module "vpc" {
   name               = local.name
   cidr_block         = var.vpc_config.vpc_cidr
   az_count           = var.vpc_config.az_count
-  transit_gateway_id = data.aws_ec2_transit_gateway.this.id
+  transit_gateway_id = data.aws_ec2_transit_gateway.this[0].id
   tags               = local.tags
 
   transit_gateway_routes = {
