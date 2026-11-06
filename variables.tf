@@ -134,9 +134,7 @@ variable "authorizers" {
       authorizer_ttl         = optional(number, 300),
       authorizer_credentials = optional(string, null),
       authorizer_uri         = string,
-      # "request" with authorizer_ttl = 0 makes API GW invoke the authoriser
-      # even when no Authorization header is sent
-      authorizer_type = optional(string, "token"),
+      authorizer_type        = optional(string, "token"),
       }
     )), {}),
 
