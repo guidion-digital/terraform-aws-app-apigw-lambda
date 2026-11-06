@@ -403,6 +403,12 @@ module "api-app-x" {
             security = ["asm"]
           }
         }
+
+        "/debug-request-auth" = {
+          "get" = {
+            security = ["asm-request"]
+          }
+        }
       }
     }
   }
@@ -414,6 +420,14 @@ module "api-app-x" {
       "asm" = {
         name           = "Authorization",
         authorizer_uri = "arn:aws:apigateway:${data.aws_region.current.region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:function:${var.application_name}-auth/invocations",
+      }
+
+      # A REQUEST authoriser with caching disabled. API GW invokes it even when
+      # the Authorization header is missing
+      "asm-request" = {
+        authorizer_uri  = "arn:aws:apigateway:${data.aws_region.current.region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:function:${var.application_name}-auth/invocations",
+        authorizer_type = "request",
+        authorizer_ttl  = 0,
       }
     }
   }
