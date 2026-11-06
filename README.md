@@ -183,6 +183,8 @@ Authorisers for the API Gateway can be defined in one of two ways:
 
 To assign an authoriser to a Lambda simply add/set the name of the authoriser in the `security` list, e.g. `security = ["custom_authorizer_name"]`.
 
+Custom authorisers are `token` authorisers by default. API Gateway rejects a request to a `token` authorised endpoint with a 401 when the `Authorization` header is missing, without invoking the authoriser. If the authoriser should run for every request (e.g. a log-only authoriser while clients migrate), set `authorizer_type = "request"` and `authorizer_ttl = 0`.
+
 The name you put in `security` must match an authoriser declared in `var.authorizers`, or `"api_key"` (which only exists when `var.clients` is non-empty). A name that matches neither is not an error to API Gateway: it accepts the OpenAPI document, quietly drops the requirement it cannot resolve, and serves the endpoint with **no security at all** — and the plan gives no hint of it. This module therefore fails the plan on such a reference, listing the offending endpoints and the schemes that are actually declared. An empty list (`security = []`) is untouched by this check, since that deliberately means "no security"; the check is only about names that were meant to resolve and did not. The check is skipped when you supply your own document via `var.openapi_spec`, which brings its own `components.securitySchemes`.
 
 ### Deleting the ACM Certificate

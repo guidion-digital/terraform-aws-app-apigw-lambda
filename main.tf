@@ -280,7 +280,7 @@ locals {
     "in"                           = these_configs.in,
     "x-amazon-apigateway-authtype" = "custom",
     "x-amazon-apigateway-authorizer" = {
-      "type"          = "token",
+      "type"          = these_configs.authorizer_type,
       "authorizerUri" = these_configs.authorizer_uri,
       "authorizerCredentials" : these_configs.authorizer_credentials,
       "authorizerResultTtlInSeconds" = these_configs.authorizer_ttl
