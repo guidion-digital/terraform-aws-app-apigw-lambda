@@ -134,6 +134,7 @@ variable "authorizers" {
       authorizer_ttl         = optional(number, 300),
       authorizer_credentials = optional(string, null),
       authorizer_uri         = string,
+      authorizer_type        = optional(string, "token"),
       }
     )), {}),
 
@@ -147,6 +148,11 @@ variable "authorizers" {
   })
 
   default = {}
+
+  validation {
+    condition     = alltrue([for this_authorizer in values(var.authorizers.custom) : contains(["token", "request"], this_authorizer.authorizer_type)])
+    error_message = "authorizers.custom[*].authorizer_type must be 'token' or 'request'"
+  }
 }
 
 variable "common_endpoint_configuration" {
