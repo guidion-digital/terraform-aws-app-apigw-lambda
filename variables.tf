@@ -339,11 +339,12 @@ variable "api_keys_share" {
 }
 
 variable "vpc_config" {
-  description = "VPC will be created for this application if supplied"
+  description = "VPC will be created for this application if supplied. dns_support lets it resolve the public hostnames of other VPCs on the Transit Gateway to their private addresses"
 
   type = object({
-    vpc_cidr = string,
-    az_count = optional(number, 3)
+    vpc_cidr    = string,
+    az_count    = optional(number, 3),
+    dns_support = optional(string, "disable")
   })
 
   default = null

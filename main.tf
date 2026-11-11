@@ -527,7 +527,7 @@ module "vpc" {
       transit_gateway_default_route_table_association = true
       transit_gateway_default_route_table_propagation = true
       transit_gateway_appliance_mode_support          = "disable"
-      transit_gateway_dns_support                     = "disable"
+      transit_gateway_dns_support                     = var.vpc_config.dns_support
     }
 
   }
