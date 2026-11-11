@@ -70,6 +70,8 @@ The following must be specified in the Lambda's own block (`lambdas{}`):
 
 `vpc_config` on the top level (outside of `lambdas{}`) — and setting the counter-part `lambdas{}.vpc_enabled` — is mutually exclusive with `lambdas{}.vpc_config`. The former is for when you wish this module to create a VPC for you, whilst the latter is for configuring Lambdas with an existing VPC.
 
+Set `vpc_config.dns_support = "enable"` (top level, default `"disable"`) to enable DNS support on the VPC's Transit Gateway attachment. The VPC then resolves the public hostnames of resources in other VPCs on the Transit Gateway to their private addresses.
+
 > [!NOTE] `lambdas{}.environments` behaves a little differently, and is _concatenated_ with the default values from `common_lambda_configuration`.
 
 #### Endpoints Configuration
