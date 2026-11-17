@@ -18,7 +18,7 @@ main_systems:
   - Terrappy (guidion-digital/terrappy)
   - Guidion DNS account (Route53)
   - Grafana / Loki (via promtail forwarder Lambda)
-last_reviewed: 2026-11-06
+last_reviewed: 2026-11-16
 review_confidence: low
 generated_by: CI-generated
 validated_by: none
@@ -50,7 +50,7 @@ Does:
 - Creates the single API stage (`var.api_stage`, default `"live"`), its deployment, a global `*/*` method setting, and per-endpoint/per-verb method settings via `modules/method_settings`
 - Creates custom domain names, base path mappings, and Route53 records — the records in a _different_ AWS account, reached by assuming `var.domain_account_role` (`dns.tf`)
 - Creates CloudWatch log groups for the Lambdas itself, ahead of the promtail subscription filters that depend on them (`main.tf:561-580`)
-- Optionally creates: a VPC with Transit Gateway attachment (from a Guidion fork of `terraform-aws-vpc`), a regional WAF ACL, DynamoDB tables, SQS queues, Secrets Manager secrets, SSM parameters, ElastiCache clusters, and per-client API keys
+- Optionally creates: a VPC with Transit Gateway attachment and configurable Transit Gateway DNS support (from a Guidion fork of `terraform-aws-vpc`), a regional WAF ACL, DynamoDB tables, SQS queues, Secrets Manager secrets, SSM parameters, ElastiCache clusters, and per-client API keys
 - Attaches event sources to Lambdas: SQS queues and CloudWatch schedule/pattern rules via `modules/event_triggers`, and DynamoDB streams directly in the root module
 
 Does not do (delegated to):
@@ -82,7 +82,7 @@ This module owns no business data. It _provisions_ stores and then steps back; t
 | DNS records for the app's subdomains | This module, in the DNS account        | Owns / writes                              | Assumes `var.domain_account_role`; the parent zone is only read (`dns.tf:109`)                                                                               |
 | ACM certificate for those domains    | `helper-acm-validation`                | Provisions                                 | Validation records land in the DNS account, the certificate in the requesting account                                                                        |
 | WAF ACL and IP sets                  | `helper-firewall`                      | Provisions                                 | Regional scope, attached to the API stage ARN                                                                                                                |
-| VPC, subnets, TGW attachment         | Guidion `terraform-aws-vpc` fork       | Provisions (optional)                      | Only when `var.vpc_config` is set                                                                                                                            |
+| VPC, subnets, TGW attachment         | Guidion `terraform-aws-vpc` fork       | Provisions (optional)                      | Only when `var.vpc_config` is set; `vpc_config.dns_support` controls TGW attachment DNS support                                                              |
 | Terraform state                      | Terraform Cloud / Enterprise workspace | Reads / consumes                           | Workspace `constr-acc-apigw-app-x` for this repo's own CI                                                                                                    |
 
 ---
@@ -153,7 +153,7 @@ Versions below are the **constraints declared in tracked source**, not resolved 
 | `guidion-digital/helper-firewall/aws` `0.0.1` (exact)       | Regional WAFv2 web ACL, IP sets, managed rule groups                                                              | Same                                                         |
 | `guidion-digital/helper-elasticache/aws` `~> 0.0`           | ElastiCache cluster and security groups. Creates no networking — a VPC and `vpc_id` must already exist            | Same                                                         |
 | `cloudposse/label/null` `0.25.0` (exact)                    | Canonical tag set: `Terraform`, `Module=app-api-lambda`, `project`, `application`, `stage`                        | n/a                                                          |
-| `guidion-digital/terraform-aws-vpc` git ref `0.0.1`         | VPC, private and transit-gateway subnets, TGW routes and flow logs                                                | Repo read access on the runner                               |
+| `guidion-digital/terraform-aws-vpc` git ref `0.0.1`         | VPC, private and transit-gateway subnets, TGW routes, flow logs, and optional TGW attachment DNS support          | Repo read access on the runner                               |
 | `hashicorp/aws` provider `>= 2.7.0, < 7.0.0`                | All AWS resources; requires the two configuration aliases `aws.requester_external` and `aws.dns_account_external` | TFC workspace credentials                                    |
 | `cloudposse/utils` `>= 0.3.0` (in `modules/deepmerge`)      | `utils_deep_merge_yaml` — merges per-Lambda path specs                                                            | n/a                                                          |
 | CherryBomb                                                  | Optional OpenAPI lint via `local-exec`                                                                            | Binary must be installed on the runner                       |
@@ -185,6 +185,7 @@ Versions below are the **constraints declared in tracked source**, not resolved 
 - **One API stage, always, called `live`.** API Gateway stages are release environments; Guidion uses whole AWS accounts for that instead, so the single stage is named for what it is. Canary and A/B use of stages is unimplemented by choice.
 - **A Lambda block is a set of endpoint+verb pairs sharing one handler.** To serve the same path with a different handler per verb you declare a second Lambda with the same path and a different verb — the deep-merge combines them into one path object. This is the module's central idiom and the README documents it at length.
 - **Cross-account DNS by assume-role.** Certificates are created in the application account; validation and application records in the DNS account. Two provider aliases (`aws.requester_external`, `aws.dns_account_external`) are _configuration aliases_, so every consumer must pass them — both pinned to `us-east-1`.
+- **Transit Gateway DNS support is opt-in.** Set top-level `vpc_config.dns_support = "enable"` (default `"disable"`) to enable DNS support on the VPC's Transit Gateway attachment. This lets the VPC resolve public hostnames of resources in other VPCs on the Transit Gateway to their private addresses.
 - **`parent_zone` and subdomains are handled by separate resources** because a record for the naked parent zone must be an A-alias while subdomains are CNAMEs (`dns.tf:41-48`, `:116-148`). Taking `parent_zone_in_domains = true` means the application claims the naked domain for the whole org; the README says loudly that you probably do not want this.
 - **`DEPRECATED_acm_mode` is an intentional asymmetry.** It forces the parent zone into the _certificate_ (`dns.tf:33`) while leaving `parent_zone_in_domains` to decide whether a _domain name and record_ are created (`dns.tf:50`). That looks like a bug and is not: it is exactly the backwards-compatibility shim the README describes for instances deployed when the parent zone was the main ACM domain.
 - **Secrets are namespaced, deliberately and invisibly.** A `secrets = { "foo" = … }` block yields a secret at `applications/${application_name}/foo`. Application code must use the full path; the test app shows this by passing the full path in an environment variable.
@@ -279,7 +280,7 @@ Drawn from in-repo `TODO`/`WIP` markers and `Development Notes.md`; none of thes
 
 ## Freshness
 
-- **Last reviewed:** 2026-11-06
+- **Last reviewed:** 2026-11-16
 - **Review confidence:** low
 - **Generated by:** CI-generated
 - **Validated by:** none
