@@ -253,7 +253,7 @@ module "authorizer" {
   for_each = var.authorizers.create_custom
 
   source  = "guidion-digital/helper-api-authorizer/aws"
-  version = "0.0.1"
+  version = "0.2.0"
 
   name        = each.key
   secret_name = each.value.secret_name
